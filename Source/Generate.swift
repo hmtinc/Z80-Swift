@@ -8,7 +8,7 @@
 
 import Foundation
 
-//Script Based of z80.pl from the SMS Miracle Emulator 
+//Script Based of z80.pl from the script provided with FUSE  
 //Additional elements ported from https://github.com/remogatto/z80/
 
 //Output 
