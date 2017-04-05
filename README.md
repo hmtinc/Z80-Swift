@@ -9,9 +9,12 @@ Z80 Swift is a free and open-source (MIT licensed) Z80 CPU emulator written in
 The goal for Z80 Swift is to fully implement a cross platform (OSX, Linux, iOS) Emulation Core that can be used in future projects to emulate  
 systems based on the Z80
 
-#Resources
-
-
+# Resources
+- [GO Z80 Emulator By Remogatto](https://github.com/remogatto/z80)
+- [Miracle SMS Emulator](https://github.com/mattgodbolt/Miracle/tree/master/z80)
+- [Z80 OpCodes List](http://www.z80.info/z80oplist.txt)
+- [Z80 Instruction Set](http://clrhome.org/table/)
+- [Z80 User Manual](http://www.z80.info/zip/z80cpu_um.pdf)
 
 # License
 
