@@ -788,3 +788,140 @@ func OUT(port : String, register : String) {
         exit(90)
     }
 }
+
+func OUTD(_ a : String, _ b : String) { outi_outd(opcode: "OUTD")}
+
+func OUTI(_ a : String, _ b : String) { outi_outd(opcode: "OUTI")}
+
+func POP(_ a : String, _ b : String) { push_pop(opcode: "POP", regpair: a)}
+
+func PUSH(_ a : String, _ b : String) {
+    ln(sList: ["z80.memory.ContendReadNoMreq( z80.IR(), 1 )"])
+    push_pop(opcode: "PUSH", regpair: a)
+}
+
+func RES(_ bit : String, _ register : String) {
+    //Parse Bit
+    let parsedInt : UInt? = UInt(bit)
+    
+    //Check if parse completed without err
+    if parsedInt == nil {
+        exit(120)
+    }
+    
+    res_set(opcode: "RES", bit: UInt(parsedInt!), register: register)
+}
+
+func RET(_ condition : String, _ b : String) {
+    if condition == "" {
+        ln(sList : ["z80.ret()"])
+    } else {
+        ln(sList : ["z80.memory.ContendReadNoMreq( z80.IR(), 1 )"])
+        
+        if condition == "NZ" {
+        }
+        
+        if not[condition]! {
+            ln(sList : ["if !((z80.F & FLAG_", flag[condition]!, ") != 0) { z80.ret() }"])
+        } else {
+            ln(sList : ["if (z80.F & FLAG_", flag[condition]!, ") != 0 { z80.ret() }"])
+        }
+    }
+}
+
+func RETN(_ a : String, _ b : String) {
+    ln(sList : ["z80.IFF1 = z80.IFF2"])
+    ln(sList : ["z80.ret()"])
+}
+
+func RL(_ a : String, _ b : String) { rotate_shift(opcode: "RL", register: a)}
+
+func RLC(_ a : String, _ b : String) { rotate_shift(opcode: "RLC", register: a)}
+
+func RLA(_ a : String, _ b : String) {
+    ln(sList : ["var bytetemp : UInt8 = z80.A"])
+    ln(sList : ["z80.A = ( z80.A << 1 ) | ( z80.F & FLAG_C )"])
+    ln(sList : ["z80.F = ( z80.F & ( FLAG_P | FLAG_Z | FLAG_S ) ) | ( z80.A & ( FLAG_3 | FLAG_5 ) ) | ( bytetemp >> 7 )"])
+}
+
+func RLD(_ a : String, _ b : String) {
+    ln(sList : ["var bytetemp : UInt8 = z80.memory.ReadByte( z80.HL() )"])
+    ln(sList : ["z80.memory.ContendReadNoMreq_loop( z80.HL(), 1, 4 )"])
+    ln(sList : ["z80.memory.WriteByte(z80.HL(), (bytetemp << 4 ) | ( z80.A & 0x0f ) )"])
+    ln(sList : ["z80.A = ( z80.A & 0xf0 ) | ( bytetemp >> 4 )"])
+    ln(sList : ["z80.F = ( z80.F & FLAG_C ) | sz53pTable[z80.A]"])
+}
+
+func RR(_ a : String, _ b : String) { rotate_shift(opcode: "RR", register: a)}
+
+func RRA(_ a : String, _ b : String) {
+    ln(sList : ["var bytetemp : UInt8 = z80.A"])
+    ln(sList : ["z80.A = ( z80.A >> 1 ) | ( z80.F << 7 )"])
+    ln(sList : ["z80.F = ( z80.F & ( FLAG_P | FLAG_Z | FLAG_S ) ) | ( z80.A & ( FLAG_3 | FLAG_5 ) ) | ( bytetemp & FLAG_C )"])
+}
+
+func RRC(_ a : String, _ b : String) { rotate_shift(opcode: "RRC", register: a)}
+
+func RRCA(_ a : String, _ b : String) {
+    ln(sList : ["z80.F = ( z80.F & ( FLAG_P | FLAG_Z | FLAG_S ) ) | ( z80.A & FLAG_C )"])
+    ln(sList : ["z80.A = ( z80.A >> 1) | ( z80.A << 7 )"])
+    ln(sList : ["z80.F |= ( z80.A & ( FLAG_3 | FLAG_5 ) )"])
+}
+
+func RRD(_ a : String, _ b : String) {
+    ln(sList : ["var bytetemp : UInt8 = z80.memory.ReadByte( z80.HL() )"])
+    ln(sList : ["z80.memory.ContendReadNoMreq_loop( z80.HL(), 1, 4 )"])
+    ln(sList : ["z80.memory.WriteByte(z80.HL(),  ( z80.A << 4 ) | ( bytetemp >> 4 ) )"])
+    ln(sList : ["z80.A = ( z80.A & 0xf0 ) | ( bytetemp & 0x0f )"])
+    ln(sList : ["z80.F = ( z80.F & FLAG_C ) | sz53pTable[z80.A]"])
+}
+
+func RST(_ a : String, _ b : String) {
+    ln(sList : ["z80.memory.ContendReadNoMreq( z80.IR(), 1 )"])
+    ln(sList : ["z80.rst(0x", a, ")"])
+}
+
+func SBC(_ a : String, _ b : String) { arithmetic_logical(opcode: "SBC", arg1: a, arg2: b)}
+
+func SCF( a : String, _ b : String) {
+    ln(sList : ["z80.F = ( z80.F & ( FLAG_P | FLAG_Z | FLAG_S ) ) |"])
+    ln(sList : ["        ( z80.A & ( FLAG_3 | FLAG_5          ) ) |"])
+    ln(sList : ["        FLAG_C"])
+}
+
+func SET(_ bit : String, _ register : String) {
+    //Parse Bit
+    let parsedInt : UInt? = UInt(bit)
+    
+    //Check if parse completed without err
+    if parsedInt == nil {
+        exit(120)
+    }
+    
+    res_set(opcode: "SET", bit: UInt(parsedInt!), register: register)
+}
+
+func SLA(_ a : String, _ b : String) { rotate_shift(opcode: "SLA", register: a)}
+
+func SLL(_ a : String, _ b : String) { rotate_shift(opcode: "SLL", register: a)}
+
+func SRA(_ a : String, _ b : String) { rotate_shift(opcode: "SRA", register: a)}
+
+func SRL(_ a : String, _ b : String) { rotate_shift(opcode: "SRL", register: a)}
+
+func SUB(_ a : String, _ b : String) { arithmetic_logical(opcode: "SUB", arg1: a, arg2: b)}
+
+func XOR(_ a : String, _ b : String) { arithmetic_logical(opcode: "XOR", arg1: a, arg2: b)}
+
+func SLTTRAP(_ a : String, _ b : String) { ln(sList: ["z80.sltTrap(UInt16(z80.HL()), z80.A)"]) }
+
+
+// Description of each file
+var description = [
+    "opcodes_cb.dat":     "z80_cb.c: Z80 CBxx opcodes",
+    "opcodes_ddfd.dat":   "z80_ddfd.c Z80 {DD,FD}xx opcodes",
+    "opcodes_ddfdcb.dat": "z80_ddfdcb.c Z80 {DD,FD}CBxx opcodes",
+    "opcodes_ed.dat":     "z80_ed.c: Z80 CBxx opcodes",
+    "opcodes_base.dat":   "opcodes_base.c: unshifted Z80 opcodes",
+]
+
