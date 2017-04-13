@@ -8,7 +8,7 @@
 
 import Foundation
 
-//Script Based of z80.pl from the SMS Miracle Emulator 
+//Script Based of z80.pl from the SMS Miracle Emulator
 //Additional elements ported from https://github.com/remogatto/z80/
 
 
@@ -38,23 +38,23 @@ extension String {
 //Output
 var output = "";
 
-//Not Flags 
+//Not Flags
 var not = ["NC" : true, "NZ" : true, "P": true, "PO" : true]
 
-//Use F & Flag_<something> 
+//Use F & Flag_<something>
 var flag = ["C":"C", "NC":"C", "PE":"P","PO":"P", "M":"S", "P":"S", "Z":"Z", "NZ":"Z"]
 
-//Determine if a string matches a pattern 
+//Determine if a string matches a pattern
 func matches(s : String, pattern : String) -> Bool {
     return (s.range(of: s, options: .regularExpression) != nil)
 }
 
-//Convert a string to lower case 
+//Convert a string to lower case
 func lc(s : String) -> String {
     return s.lowercased()
 }
 
-//Write to output with \n terminator 
+//Write to output with \n terminator
 func nlPrint (s : String){
     print(s, to: &output)
 }
@@ -64,17 +64,17 @@ func nnlPrint (s : String) {
     print(s, separator: "", terminator: "", to: &output)
 }
 
-//Joins the strings in a array and prints them to output 
+//Joins the strings in a array and prints them to output
 func ln (sList : [String]) {
     for index in 0 ..< sList.count {
         nnlPrint(s: sList[index])
     }
     
-    //Print a new line 
+    //Print a new line
     print()
 }
 
-//If Statement (Helps reduce lines of code) 
+//If Statement (Helps reduce lines of code)
 func _if(cond : Bool, if_true : String, if_false : String ) -> String {
     if (cond) { return if_true }
     else { return if_false }
@@ -97,13 +97,13 @@ func arithmetic_logical(opcode : String, arg1 : String, arg2 : String){
     //Temp Variables
     var lc_opcode = ""
     
-    //Check if arg2 is blank 
+    //Check if arg2 is blank
     if (arg2 == ""){
         arg2 = arg1
         arg1 = "A"
     }
     
-   
+    
     if (len(s: arg1) == 1){
         if (len(s: arg2) == 1 || matches(s: arg2, pattern: "$REGISTER[HL]$")){
             lc_opcode = lc(s: opcode)
@@ -356,8 +356,8 @@ func res_set_hexmask(_ opcode : String, _ bit : UInt) -> String {
     if opcode == "RES" {
         mask = 0xff - mask
     }
-
-   //Format Output
+    
+    //Format Output
     print(NSString(format : "0x%02x", mask), separator: "", terminator: "", to: &hexOutput)
     
     //Return hex code
@@ -526,7 +526,7 @@ func EX(_ a : String, _ b : String) {
     } else {
         exit(10)
     }
-
+    
 }
 
 func EXX(_ a : String, _ b : String) {
@@ -838,6 +838,13 @@ func RL(_ a : String, _ b : String) { rotate_shift(opcode: "RL", register: a)}
 
 func RLC(_ a : String, _ b : String) { rotate_shift(opcode: "RLC", register: a)}
 
+func RLCA(_ a : String, _ b : String) {
+    ln(sList : ["z80.A = ( z80.A << 1 ) | ( z80.A >> 7 )"])
+    ln(sList : ["z80.F = ( z80.F & ( FLAG_P | FLAG_Z | FLAG_S ) ) |"])
+    ln(sList : ["        ( z80.A & ( FLAG_C | FLAG_3 | FLAG_5 ) )"])
+}
+
+
 func RLA(_ a : String, _ b : String) {
     ln(sList : ["var bytetemp : UInt8 = z80.A"])
     ln(sList : ["z80.A = ( z80.A << 1 ) | ( z80.F & FLAG_C )"])
@@ -924,4 +931,98 @@ var description = [
     "opcodes_ed.dat":     "z80_ed.c: Z80 CBxx opcodes",
     "opcodes_base.dat":   "opcodes_base.c: unshifted Z80 opcodes",
 ]
+
+
+//Function Map, because Swift reflection is weird
+let funcTable : [String : (String, String) -> Void] = [
+    "ADC":   ADC,
+    "ADD":   ADD,
+    "AND ":   AND ,
+    "BIT":   BIT,
+    "CALL":   CALL,
+    "CCF":   CCF,
+    "CP":   CP,
+    "CPD":   CPD,
+    "CPDR":   CPDR,
+    "CPI":   CPI,
+    "CPIR":   CPIR,
+    "CPL":   CPL,
+    "DAA":   DAA,
+    "DEC":   DEC,
+    "DI":   DI,
+    "DJNZ":   DJNZ,
+    "EI":   EI,
+    "EX":   EX,
+    "EXX":   EXX,
+    "HALT":   HALT,
+    "IM":   IM,
+    "IN":   IN,
+    "INC":   INC,
+    "IND":   IND,
+    "INDR":   INDR,
+    "INI":   INI,
+    "INIR":   INIR,
+    "JP":   JP,
+    "JR":   JR,
+    "LD":   LD,
+    "LDD":   LDD,
+    "LDDR":   LDDR,
+    "LDI":   LDI,
+    "LDIR":   LDIR,
+    "NEG":   NEG,
+    "NOP":   NOP,
+    "OR":   OR,
+    "OTDR":   OTDR,
+    "OTIR":   OTIR,
+    "OUT":   OUT,
+    "OUTD":   OUTD,
+    "OUTI":   OUTI,
+    "POP":   POP,
+    "PUSH":   PUSH,
+    "RES":   RES,
+    "RET":   RET,
+    "RETN":   RETN,
+    "RL":   RL,
+    "RLC":   RLC,
+    "RLCA":   RLCA,
+    "RLA":   RLA,
+    "RLD":   RLD,
+    "RR":   RR,
+    "RRA":   RRA,
+    "RRC":   RRC,
+    "RRCA":   RRCA,
+    "RRD":   RRD,
+    "RST":   RST,
+    "SBC":   SBC,
+    "SCF":   SCF,
+    "SET ":   SET ,
+    "SLA":   SLA,
+    "SLL":   SLL,
+    "SRA":   SRA,
+    "SRL":   SRL,
+    "SUB":   SUB,
+    "XOR":   XOR,
+    "SLTTRAP":   SLTTRAP,
+]
+
+//Remove invalid characters
+func turnIntoIdentifier (inStr : String) -> String{
+    var out = inStr
+    
+    //Replaces Spaces and ,
+    out = out.replacingOccurrences(of: " ", with: "_")
+    out = out.replacingOccurrences(of: ",", with: "_")
+    
+    //Replace Brackets
+    out = out.replacingOccurrences(of: "(", with: "i")
+    out = out.replacingOccurrences(of: ")", with: "")
+    
+    //Replace plus signs and '
+    out = out.replacingOccurrences(of: "+", with: "p")
+    out = out.replacingOccurrences(of: "'", with: "")
+    
+    //Return result
+    return out
+}
+
 
