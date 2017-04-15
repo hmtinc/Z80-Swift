@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Darwin
 
 //Script Based of z80.pl from the SMS Miracle Emulator
 //Additional elements ported from https://github.com/remogatto/z80/
@@ -1025,4 +1026,167 @@ func turnIntoIdentifier (inStr : String) -> String{
     return out
 }
 
+//Read file line by line
+func lineGenerator(file:UnsafeMutablePointer<FILE>) -> AnyIterator<String>
+{
+    return AnyIterator { () -> String? in
+        var line:UnsafeMutablePointer<CChar> = nil
+        var linecap:Int = 0
+        defer { free(line) }
+        return getline(&line, &linecap, file) > 0 ? String.fromCString(line) : nil
+    }
+}
 
+
+func processDateFile (data_file : String, dataFileType : String, code : inout String, functions : inout String){
+    
+    //Reset Output
+    output = "";
+    
+    //Temp Storage
+    var funcOut : String; var codeOut : String
+    
+    //Open file 
+    let fileData = fopen(data_file, "r")
+    
+    //Create a line generator object 
+    let lineGen = lineGenerator(file: fileData!)
+    
+    var fallthrough_cases = [String]()
+    
+    //Loop through the file line by line 
+    for line in lineGen {
+        
+        var tempLine = line
+        
+        //Remove comments 
+        if tempLine.contains("#"){
+            tempLine = tempLine.components(separatedBy: "#")[0]
+        }
+        
+        //Trim trailing spaces
+        tempLine = tempLine.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        
+        //Skip blank lines
+        if len(s: tempLine)  == 0 {
+            continue;
+        }
+        
+        //Split string into individual components
+        var lComp = tempLine.components(separatedBy: " ")
+        
+        var number, opcode, arguments, extra : String
+        
+        number = lComp[0]
+        
+        //Split the line into components
+        if lComp.count >= 2 {
+            opcode = lComp[1]
+        }
+        if lComp.count >= 3{
+            arguments = lComp[2]
+        }
+        if lComp.count >= 4 {
+            extra = lComp[3]
+        }
+        
+        var argComp = ["",""]
+        
+        if arguments != "" {
+            argComp[0] = arguments.components(separatedBy: ",")[0]
+            argComp[1] = arguments.components(separatedBy: ",")[1]
+        }
+        
+        var shift_op : String
+        var opcodeType : String
+        
+        switch dataFileType {
+        case "opcodes_cb":
+            shift_op = "SHIFT_0xCB+" + number
+            opcodeType = "CB"
+        case "opcodes_ed":
+            shift_op = "SHIFT_0xED+" + number
+            opcodeType = "ED"
+        case "opcodes_dd":
+            shift_op = "SHIFT_0xDD+" + number
+            opcodeType = "DD"
+        case "opcodes_fd":
+            shift_op = "SHIFT_0xFD+" + number
+            opcodeType = "FD"
+        case "opcodes_ddfdcb":
+            shift_op = "SHIFT_0xDDCB+" + number
+            opcodeType = "DDCB"
+        default:
+            shift_op = number
+            opcodeType = ""
+        }
+        
+        /* 
+        Implement this for auto generated comments
+        var comment : String
+        if opcode != "" {
+            comment = "" + opcode
+            if arguments != ""{
+            }
+        }
+        */
+        
+        var tempname = opcode + " " + arguments + " " + extra
+        var funcName = "instr" + opcodeType + "__" + turnIntoIdentifier(inStr: tempname.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines))
+        funcName = funcName.replacingOccurrences(of: "ixH", with: "IXH")
+        funcName = funcName.replacingOccurrences(of: "ixL", with: "IXL")
+        funcName = funcName.replacingOccurrences(of: "iyH", with: "IYH")
+        funcName = funcName.replacingOccurrences(of: "iyL", with: "IYL")
+        funcName = funcName.replacingOccurrences(of: "REGISTER", with: "REG")
+        ln(sList: ["OpcodesMap[", shift_op, "] = ", funcName])
+        
+        //Backup output
+        codeOut = output
+        output = funcOut
+        
+        //Output to functions 
+        //ln(comment) 
+        
+        ln(sList: ["func ", funcName, "(z80 : inout Z80) {"])
+        
+        // Handle the undocumented rotate-shift-or-bit and store-in-register opcodes specially
+        if extra != "" {
+            //Implement stuff here, undocumented codes aren't a specfic concern right now
+        }
+        
+        if let op = funcTable[opcode.uppercased()]{
+            op(argComp[0], argComp[1])
+        }
+        
+        ln(sList: ["}"])
+        
+        
+        //Handle fall through cases 
+        if fallthrough_cases.count > 0 {
+            
+            //Implement fallthrough cases here
+        }
+        
+        //Backup functions 
+        funcOut = output
+        output = codeOut
+    }
+    
+    //Reset output
+    output = ""
+}
+
+//Call this to start execution
+func startExecution(){
+    
+    //Data files
+    var data_files = [
+        ["opcodes_base", "opcodes_base"],
+        ["opcodes_cb", "opcodes_cb"],
+        ["opcodes_ed", "opcodes_ed"],
+        ["opcodes_ddfd", "opcodes_dd"],
+        ["opcodes_ddfd", "opcodes_fd"],
+        ["opcodes_ddfdcb", "opcodes_ddfdcb"]]
+    
+    
+}
