@@ -40,7 +40,7 @@ extension String {
 var output = "";
 
 //Not Flags
-var not = ["NC" : true, "NZ" : true, "P": true, "PO" : true]
+var notFlags = ["NC" : true, "NZ" : true, "P": true, "PO" : true]
 
 //Use F & Flag_<something>
 var flag = ["C":"C", "NC":"C", "PE":"P","PO":"P", "M":"S", "P":"S", "Z":"Z", "NZ":"Z"]
@@ -57,12 +57,15 @@ func lc(s : String) -> String {
 
 //Write to output with \n terminator
 func nlPrint (s : String){
-    print(s, to: &output)
+    print(s, separator: "", terminator: "\n", to: &output)
+    //output += s
+    //output += " \n"
 }
 
 //Write to output with no \n terminator
 func nnlPrint (s : String) {
     print(s, separator: "", terminator: "", to: &output)
+    //output += s
 }
 
 //Joins the strings in a array and prints them to output
@@ -72,7 +75,7 @@ func ln (sList : [String]) {
     }
     
     //Print a new line
-    print()
+    output += " \n"
 }
 
 //If Statement (Helps reduce lines of code)
@@ -148,7 +151,7 @@ func call_jp(opcode : String, condition : String, offset : String) {
         ln(sList: ["z80.", lc_opcode, "()"])
     } else {
         var condition_string : String
-        if not[condition]!{
+        if notFlags[condition] != nil{
             condition_string = "(z80.F & FLAG_" + flag[condition]! + ") == 0"
         } else {
             condition_string = "(z80.F & FLAG_" + flag[condition]! + ") != 0"
@@ -170,7 +173,7 @@ func cpi_cpd(opcode : String) {
     ln(sList: ["z80.memory.ContendReadNoMreq_loop( z80.HL(), 1, 5 )"])
     ln(sList: ["z80.", modifier, "HL(); z80.DecBC()"])
     ln(sList: ["z80.F = (z80.F & FLAG_C) | ternOpB(z80.BC() != 0, FLAG_V | FLAG_N, FLAG_N) | halfcarrySubTable[lookup] | ternOpB(bytetemp != 0, 0, FLAG_Z) | (bytetemp & FLAG_S )"])
-    ln(sList: ["if (z80.F & FLAG_H) != 0 { bytetemp-- }"])
+    ln(sList: ["if (z80.F & FLAG_H) != 0 { bytetemp-= 1 }"])
     ln(sList: ["z80.F |= (bytetemp & FLAG_3) | ternOpB((bytetemp & 0x02) != 0, FLAG_5, 0)"])
 }
 
@@ -185,7 +188,7 @@ func cpir_cpdr(opcode : String) {
     ln(sList: ["z80.DecBC()"])
     ln(sList: ["z80.F = ( z80.F & FLAG_C ) | ( ternOpB(z80.BC() != 0, ( FLAG_V | FLAG_N ),FLAG_N)) | halfcarrySubTable[lookup] | ( ternOpB(bytetemp != 0, 0, FLAG_Z )) | ( bytetemp & FLAG_S )"])
     ln(sList: ["if (z80.F & FLAG_H) != 0 {"])
-    ln(sList: ["  bytetemp--"])
+    ln(sList: ["  bytetemp -= 1"])
     ln(sList: ["}"])
     ln(sList: ["z80.F |= ( bytetemp & FLAG_3 ) | ternOpB((bytetemp & 0x02) != 0, FLAG_5, 0)"])
     ln(sList: ["if ( z80.F & ( FLAG_V | FLAG_Z ) ) == FLAG_V {"])
@@ -232,7 +235,7 @@ func ini_ind(opcode : String) {
     ln(sList: ["var initemp : UInt8 = z80.readPort(z80.BC());"])
     ln(sList: ["z80.memory.WriteByte( z80.HL(), initemp );"])
     ln(sList: [])
-    ln(sList: ["z80.B--; z80.", modifier, "HL()"])
+    ln(sList: ["z80.B -= 1; z80.", modifier, "HL()"])
     ln(sList: ["var initemp2 : UInt8 = initemp + z80.C ", operation, " 1;"])
     ln(sList: ["z80.F = ternOpB((initemp & 0x80) != 0, FLAG_N, 0) |"])
     ln(sList: ["        ternOpB(initemp2 < initemp, FLAG_H | FLAG_C, 0) |"])
@@ -248,7 +251,7 @@ func inir_indr(opcode: String) {
     ln(sList: ["var initemp : UInt8 = z80.readPort(z80.BC());"])
     ln(sList: ["z80.memory.WriteByte( z80.HL(), initemp );"])
     ln(sList: [])
-    ln(sList: ["z80.B--;"])
+    ln(sList: ["z80.B -= 1;"])
     ln(sList: ["var initemp2 : UInt8 = initemp + z80.C ", operation, " 1;"])
     ln(sList: ["z80.F = ternOpB(initemp & 0x80 != 0, FLAG_N, 0) |"])
     ln(sList: ["        ternOpB(initemp2 < initemp, FLAG_H | FLAG_C, 0 ) |"])
@@ -298,7 +301,7 @@ func otir_otdr(opcode : String) {
     
     ln(sList: ["z80.memory.ContendReadNoMreq( z80.IR(), 1 );"])
     ln(sList: ["var outitemp : UInt8 = z80.memory.ReadByte( z80.HL() );"])
-    ln(sList: ["z80.B--;"])
+    ln(sList: ["z80.B -= 1;"])
     ln(sList: ["z80.writePort(z80.BC(), outitemp);"])
     ln(sList: [])
     ln(sList: ["z80.", modifier, "HL()"])
@@ -319,7 +322,7 @@ func outi_outd(opcode: String) {
     
     ln(sList: ["z80.memory.ContendReadNoMreq( z80.IR(), 1 )"])
     ln(sList: ["var outitemp : UInt8 = z80.memory.ReadByte( z80.HL() )"])
-    ln(sList: ["z80.B--;"])
+    ln(sList: ["z80.B -= 1;"])
     ln(sList: ["z80.writePort(z80.BC(), outitemp)"])
     ln(sList: [])
     ln(sList: ["z80.", modifier, "HL()"])
@@ -602,7 +605,7 @@ func JR(_ a : String, _ b : String) {
         ln(sList: ["z80.jr()"])
     } else {
         var condition_string : String
-        if not[condition]! {
+        if notFlags[condition] != nil {
             condition_string = "(z80.F & FLAG_" + flag[condition]! + ") == 0"
         } else {
             condition_string = "(z80.F & FLAG_" + flag[condition]! + ") != 0"
@@ -677,9 +680,9 @@ func LD(_ a : String, _ b : String) {
         }
         
         if src == "nnnn" {
-            ln(sList: ["b1 := z80.memory.ReadByte(z80.PC())"])
+            ln(sList: ["var b1 = z80.memory.ReadByte(z80.PC())"])
             ln(sList: ["z80.IncPC(1)"])
-            ln(sList: ["b2 := z80.memory.ReadByte(z80.PC())"])
+            ln(sList: ["var b2 = z80.memory.ReadByte(z80.PC())"])
             ln(sList: ["z80.IncPC(1)"])
             ln(sList: ["z80.Set", high, low, "(joinBytes(b2, b1))"])
         } else if ((src == "HL") || (src == "REGISTER")) {
@@ -731,12 +734,12 @@ func LD(_ a : String, _ b : String) {
         }
     } else if dest == "(REGISTER+dd)" {
         if len(s: src) == 1 {
-            ln(sList: ["offset := z80.memory.ReadByte( z80.PC() )"])
+            ln(sList: ["var offset = z80.memory.ReadByte( z80.PC() )"])
             ln(sList: ["z80.memory.ContendReadNoMreq_loop( z80.PC(), 1, 5 )"])
             ln(sList: ["z80.IncPC(1)"])
             ln(sList: ["z80.memory.WriteByte(z80.REGISTER() + uint16(signExtend(offset)), z80.", src, " )"])
         } else if src == "nn" {
-            ln(sList: ["offset := z80.memory.ReadByte( z80.PC() )"])
+            ln(sList: ["var offset = z80.memory.ReadByte( z80.PC() )"])
             ln(sList: ["z80.IncPC(1)"])
             ln(sList: ["var value = z80.memory.ReadByte( z80.PC() )"])
             ln(sList: ["z80.memory.ContendReadNoMreq_loop( z80.PC(), 1, 2 )"])
@@ -822,7 +825,7 @@ func RET(_ condition : String, _ b : String) {
         if condition == "NZ" {
         }
         
-        if not[condition]! {
+        if notFlags[condition] != nil {
             ln(sList : ["if !((z80.F & FLAG_", flag[condition]!, ") != 0) { z80.ret() }"])
         } else {
             ln(sList : ["if (z80.F & FLAG_", flag[condition]!, ") != 0 { z80.ret() }"])
@@ -1030,11 +1033,10 @@ func turnIntoIdentifier (inStr : String) -> String{
 func lineGenerator(file:UnsafeMutablePointer<FILE>) -> AnyIterator<String>
 {
     return AnyIterator { () -> String? in
-        var line:UnsafeMutablePointer<CChar> = nil
+        var line:UnsafeMutablePointer<CChar>? = nil
         var linecap:Int = 0
         defer { free(line) }
-        return getline(&line, &linecap, file) > 0 ? String.fromCString(line) : nil
-    }
+        return getline(&line, &linecap, file) > 0 ? String(cString : line!) : nil    }
 }
 
 
@@ -1044,7 +1046,7 @@ func processDateFile (data_file : String, dataFileType : String, code : inout St
     output = "";
     
     //Temp Storage
-    var funcOut : String; var codeOut : String
+    var funcOut : String = ""; var codeOut : String = ""
     
     //Open file 
     let fileData = fopen(data_file, "r")
@@ -1077,6 +1079,9 @@ func processDateFile (data_file : String, dataFileType : String, code : inout St
         
         var number, opcode, arguments, extra : String
         
+        //Fix init Errors
+        number = ""; opcode = ""; arguments = ""; extra = ""
+        
         number = lComp[0]
         
         //Split the line into components
@@ -1094,7 +1099,10 @@ func processDateFile (data_file : String, dataFileType : String, code : inout St
         
         if arguments != "" {
             argComp[0] = arguments.components(separatedBy: ",")[0]
-            argComp[1] = arguments.components(separatedBy: ",")[1]
+            
+            if arguments.components(separatedBy: ",").count > 1 {
+                argComp[1] = arguments.components(separatedBy: ",")[1]
+            }
         }
         
         var shift_op : String
@@ -1174,6 +1182,10 @@ func processDateFile (data_file : String, dataFileType : String, code : inout St
     
     //Reset output
     output = ""
+    
+    //Mutate Variables
+    code = codeOut
+    functions = funcOut
 }
 
 //Call this to start execution
@@ -1188,5 +1200,92 @@ func startExecution(){
         ["opcodes_ddfd", "opcodes_fd"],
         ["opcodes_ddfdcb", "opcodes_ddfdcb"]]
     
+    //Code Mapping
+    var mapping = [String : String]()
+    
+    var functions : String = ""
+    
+    //Loop through all data files 
+    for dataFile in data_files {
+        var code : String = ""
+        var functionsTemp : String = ""
+        
+        //Process File 
+        processDateFile(data_file: dataFile[0]+".dat", dataFileType: dataFile[1], code: &code, functions: &functionsTemp)
+        
+        //Copy values to make porting easier
+        var codeStr = code
+        var fnStr = functionsTemp
+        
+        mapping[dataFile[1]] = codeStr
+        
+        //Temp Variables 
+        var fnStr_dd, fnStr_base, fnStr_fd : String
+        
+        switch dataFile[1] {
+        case "opcodes_base":
+            fnStr_base = fnStr.replacingOccurrences(of: "SetSPHSPL", with: "SetSP")
+            functions += fnStr_base
+        case "opcodes_dd":
+            fnStr_dd = fnStr.replacingOccurrences(of: "REGISTER", with: "ix")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "register", with: "ix")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "ix()", with: "IX()")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "SetixHixL", with: "SetIX")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "IncixH", with: "IncIXH")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "DecixH", with: "DecIXH")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "IncixL", with: "IncIXL")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "DecixL", with: "DecIXL")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "z80.ix()", with: "z80.IX()")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "ixH", with: "IXH")
+            fnStr_dd = fnStr_dd.replacingOccurrences(of:  "ixL", with: "IXL")
+            functions += fnStr_dd
+        case "opcodes_fd":
+            fnStr_fd = fnStr.replacingOccurrences(of: "REGISTER", with: "iy")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "register", with: "iy")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "iy()", with: "IY()")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "SetiyHiyL", with: "SetIY")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "InciyH", with: "IncIYH")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "DeciyH", with: "DecIYH")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "InciyL", with: "IncIYL")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "DeciyL", with: "DecIYL")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "z80.iy()", with: "z80.IY()")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "iyH", with: "IYH")
+            fnStr_fd = fnStr_fd.replacingOccurrences(of:  "iyL", with: "IYL")
+            functions += fnStr_fd
+        default:
+            functions += fnStr
+        }
+        
+        mapping["functions"] = functions
+    }
+    
+    var combined = ""
+    
+    //loop through all data files again
+    for entry in data_files {
+        combined = combined + "\n"
+        combined = combined + mapping[entry[1]]!
+        combined = combined + "\n"
+    }
+    
+    //Add functions
+    combined = combined + mapping["functions"]!
+    
+    //Write to file
+    let file: FileHandle? = FileHandle(forWritingAtPath: "opcodes_gen.swift")
+    
+    if file != nil {
+        // Set the data we want to write
+        let data = combined.data(using: String.Encoding.utf8)
+    
+        // Write it to the file
+        file?.write(data!)
+        
+        // Close the file
+        file?.closeFile()
+    }
+    else {
+        print("Error In File Saving Procedure")
+    }
     
 }

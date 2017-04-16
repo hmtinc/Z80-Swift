@@ -8,10 +8,4 @@
 
 import Foundation
 
-//Test Z80 Here
-func cool ( _ name : String, _ age : Int, _ loc : String){
-    ln(sList: ["name", String(age), loc])
-}
-
-cool("2", 2, "op")
-print(output)
+startExecution()
