@@ -77,6 +77,17 @@ func joinBytes(_ h : UInt8, _ l : UInt8) -> uint16 {
     return uint16(l) | (uint16(h) << 8)
 }
 
+func ternOpB(_ cond : Bool, _ ret1 : UInt8, _ ret2 : UInt8) ->UInt8 {
+	if cond {
+		return ret1
+	}
+	return ret2
+}
+
+func signExtend(val : UInt8) -> Int16 {
+	return Int16(Int8(val))
+}
+
 struct register16 {
     var high : Int
     var low : Int
@@ -186,7 +197,76 @@ struct Z80 {
 	pc = 0x0066
    }
 
+func jp() {
+	var jptemp : UInt16 = pc
+	var pcl = memory.ReadByte(jptemp)
+	jptemp += 1
+	var pch = memory.ReadByte(jptemp)
+	pc = joinBytes(pch, pcl)
+}
 
+func dec(_ value : inout UInt8) {
+	intArr[F] = (intArr[F] & FLAG_C) | ternOpB((*value&0x0f) != 0, 0, FLAG_H) | FLAG_N
+	value -= 1
+	intArr[F] |= ternOpB(*value == 0x7f, FLAG_V, 0) | sz53Table[*value]
+}
 
+func inc(_ value : inout UInt8) {
+	value += 1
+	intArr[F] = (intArr[F] & FLAG_C) | ternOpB(*value == 0x80, FLAG_V, 0) | ternOpB((*value&0x0f) != 0, 0, FLAG_H) | sz53Table[(*value)]
+}
+
+func jr() {
+	var jrtemp : Int16 = signExtend(z80.memory.ReadByte(pc))
+	z80.memory.ContendReadNoMreq_loop(pc, 1, 5)
+	pc += UInt16(jrtemp)
+}
+
+func ld16nnrr(_ regl : UInt8, _ regh : UInt8) {
+	var ldtemp : Uint16
+
+	ldtemp = uint16(z80.memory.ReadByte(pc))
+	pc += 1
+	ldtemp |= uint16(z80.memory.ReadByte(pc)) << 8
+	pc += 1
+	z80.memory.WriteByte(ldtemp, regl)
+	ldtemp += 1
+	z80.memory.WriteByte(ldtemp, regh)
+}
+
+func ld16rrnn(_ regl : inout UInt8, regh : inout UInt8) {
+var ldtemp : Uint16
+
+	ldtemp = uint16(z80.memory.ReadByte(pc))
+	pc += 1
+	ldtemp |= uint16(z80.memory.ReadByte(pc)) << 8
+	pc += 1
+	regl = z80.memory.ReadByte(ldtemp)
+	ldtemp += 1
+	regh = z80.memory.ReadByte(ldtemp)
+}
+
+func sub(_ value :  UInt8) {
+	var subtemp : UInt16 = UInt16(intArr[A]) - UInt16(value)
+	var lookup : UInt8 = ((intArr[A] & 0x88) >> 3) | ((value & 0x88) >> 2) | UInt8((subtemp&0x88)>>1)
+	intArr[A] = UInt8(subtemp)
+	intArr[F] = ternOpB(subtemp&0x100 != 0, FLAG_C, 0) | FLAG_N |
+		halfcarrySubTable[lookup&0x07] | overflowSubTable[lookup>>4] |
+		sz53Table[intArr[A]]
+}
+
+func  and(_ value : UInt8) {
+	intArr[A] &= value
+	intArr[F] = FLAG_H | sz53pTable[z80.F]
+}
+
+func adc(_ value : UInt8) {
+	var adctemp : UInt16 = UInt16(intArr[A]) + UInt16(value) + (UInt16(intArr[F]) & FLAG_C)
+	var lookup : UInt8 = UInt8(((UInt16(intArr[A]) & 0x88) >> 3) | ((UInt16(value) & 0x88) >> 2) | ((UInt16(adctemp) & 0x88) >> 1))
+
+	intArr[A] = UInt8(adctemp)
+
+	intArr[F] = ternOpB((adctemp&0x100) != 0, FLAG_C, 0) | halfcarryAddTable[lookup&0x07] | overflowAddTable[lookup>>4] | sz53Table[intArr[A]]
+}
 
 }
