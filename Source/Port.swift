@@ -25,7 +25,7 @@ class Port {
         var readByte : UInt8 = UInt8(address >> 8)
 
         //Format Values
-        var states = String(format: "%5d", z80.Tstates)
+        var states = String(format: "%5d", Tstates)
         var addressStr = String(format: "%04x", address)
         var readStr = String(format:"%02x", readByte)
         var combinedStr = states + " PR " + addressStr + " " + readStr + "\n"
@@ -47,7 +47,7 @@ class Port {
 	    }
 
         //Format Values
-        var states = String(format: "%5d", z80.Tstates)
+        var states = String(format: "%5d", Tstates)
         var addressStr = String(format: "%04x", address)
         var byteStr = String(format: "%02x", b)
         var combinedStr = states + " PW " + addressStr + " " + byteStr + "\n"
@@ -82,7 +82,7 @@ class Port {
             if (address & 0xc000) == 0x4000{
                 for index in 0...2{
                     //Format Values
-                    var states = String(format: "%5d", z80.Tstates)
+                    var states = String(format: "%5d", Tstates)
                     var addressStr = String(format: "%04x", address)
                     var combinedStr = states + " PC " + addressStr + "\n"
 
@@ -97,7 +97,7 @@ class Port {
         } 
         else {
               //Format Values
-              var states = String(format: "%5d", z80.Tstates)
+              var states = String(format: "%5d", Tstates)
               var addressStr = String(format: "%04x", address)
               var combinedStr = states + " PC " + addressStr + "\n"
 
