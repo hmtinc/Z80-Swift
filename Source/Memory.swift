@@ -79,7 +79,7 @@ class Memory {
         
     }
     
-      func ContentRead(_ address : UInt16, _ time : Int){
+      func ContendRead(_ address : UInt16, _ time : Int){
         //Format Values
         var states = String(format: "%5d", Tstates)
         var addressStr = String(format: "%04x", address)
@@ -91,12 +91,12 @@ class Memory {
         contendMemory(address, time)
     }
     
-    func ContentReadNoMreq(_ address : UInt16, _ time : Int){
+    func ContendReadNoMreq(_ address : UInt16, _ time : Int){
         ContentRead(addres, time)
 
     }
     
-    func ContentReadNoMreq_loop(_ address : UInt16, _ time : Int, _ count : UInt){
+    func ContendReadNoMreq_loop(_ address : UInt16, _ time : Int, _ count : UInt){
         for index in 0...time  {
             ContentReadNoMreq(addres, time)
         }
