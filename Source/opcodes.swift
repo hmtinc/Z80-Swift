@@ -145,7 +145,7 @@ func regularOpcodes(_ opCode : uint8,
         add(registers[lo], &registers)
     case 0xC6:
         //Add A, n
-        add(uint8(fetch(&registers, &mem)), &registers)
+        add(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
         stallCpu(4, &registers)
     case 0x86:
@@ -158,7 +158,7 @@ func regularOpcodes(_ opCode : uint8,
         stallCpu(4, &registers)
     case 0xCE :
         //ADC A, n
-        adc(uint8(fetch(&registers, &mem)), &registers)
+        adc(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0x8E:
         //ADC A, (AL)
@@ -169,7 +169,7 @@ func regularOpcodes(_ opCode : uint8,
         sub(registers[lo], &registers)
     case 0xD6:
         //Add A, n
-        sub(uint8(fetch(&registers, &mem)), &registers)
+        sub(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0x96:
         //SUB A, (HL)
@@ -181,7 +181,7 @@ func regularOpcodes(_ opCode : uint8,
         stallCpu(4, &registers)
     case 0xDE:
         //SBC A, n
-        sbc(uint8(fetch(&registers, &mem)), &registers)
+        sbc(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0x9E :
         //SBC A, (HL)
@@ -192,7 +192,7 @@ func regularOpcodes(_ opCode : uint8,
         and(registers[lo], &registers)
     case 0xE6 :
         //And A, n
-        and(uint8(fetch(&registers, &mem)), &registers)
+        and(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0xA6 :
         //AND A, (HL)
@@ -204,7 +204,7 @@ func regularOpcodes(_ opCode : uint8,
         stallCpu(4, &registers)
     case 0xF6 :
         //Or A, n
-        or(uint8(fetch(&registers, &mem)), &registers)
+        or(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0xB6 :
         //Or A, (HL)
@@ -215,7 +215,7 @@ func regularOpcodes(_ opCode : uint8,
         xor(registers[lo], &registers)
     case 0xEE :
         //XOR A, n
-        xor(uint8(fetch(&registers, &mem)), &registers)
+        xor(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0xAE :
         //XOR A, (HL)
@@ -234,6 +234,10 @@ func regularOpcodes(_ opCode : uint8,
     case 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBF:
         //CP A, r
         Cmp(registers[lo], &registers)
+        stallCpu(4, &registers)
+    case 0xFE :
+        //CP A, n
+        Cmp(uint8(truncatingIfNeeded:fetch(&registers, &mem)), &registers)
         stallCpu(4, &registers)
     case 0xBE :
         //CP A, (HL)
@@ -259,28 +263,28 @@ func regularOpcodes(_ opCode : uint8,
         //DAA
         var a = registers[A]
         let f = registers[F]
-        if((a & 0x0F) > 0x09 || (f & uint8(Fl.H.rawValue)) > 0){
+        if((a & 0x0F) > 0x09 || (f & uint8(truncatingIfNeeded:Fl.H.rawValue)) > 0){
             add(0x06, &registers)
             a = registers[A]
         }
-        if((a & 0xF0) > 0x09 || (f & uint8(Fl.C.rawValue)) > 0){
+        if((a & 0xF0) > 0x09 || (f & uint8(truncatingIfNeeded:Fl.C.rawValue)) > 0){
             add(0x06, &registers)
         }
         stallCpu(4, &registers)
     case 0x2F:
         //CPL
         registers[A] ^= 0xFF
-        registers[F] |= uint8(Fl.H.rawValue | Fl.N.rawValue)
+        registers[F] |= uint8(truncatingIfNeeded:Fl.H.rawValue | Fl.N.rawValue)
         stallCpu(4, &registers)
     case 0x3F:
         //CCF
-        registers[F] &= ~uint8(Fl.N.rawValue)
-        registers[F] ^= uint8(Fl.C.rawValue)
+        registers[F] &= ~uint8(truncatingIfNeeded:Fl.N.rawValue)
+        registers[F] ^= uint8(truncatingIfNeeded:Fl.C.rawValue)
         stallCpu(4, &registers)
     case 0x37 :
         //SCF
-        registers[F] &= ~uint8(Fl.N.rawValue)
-        registers[F] |= uint8(Fl.C.rawValue)
+        registers[F] &= ~uint8(truncatingIfNeeded:Fl.N.rawValue)
+        registers[F] |= uint8(truncatingIfNeeded:Fl.C.rawValue)
         stallCpu(4, &registers)
     case 0x09 :
         //ADD HL, BC
@@ -301,109 +305,109 @@ func regularOpcodes(_ opCode : uint8,
     case 0x03:
         //INC BC
         let val = Bc(registers) + 1
-        registers[B] = uint8(val >> 8)
-        registers[C] = uint8(val & 0xFF)
+        registers[B] = uint8(truncatingIfNeeded:val >> 8)
+        registers[C] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x13:
         //INC DE
         let val = De(registers) + 1
-        registers[D] = uint8(val >> 8)
-        registers[E] = uint8(val & 0xFF)
+        registers[D] = uint8(truncatingIfNeeded:val >> 8)
+        registers[E] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x23 :
         //INC HL
         let val = Hl(registers) + 1
-        registers[H] = uint8(val >> 8)
-        registers[L] = uint8(val & 0xFF)
+        registers[H] = uint8(truncatingIfNeeded:val >> 8)
+        registers[L] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x33 :
         //INC SP
         let val = Sp(registers) + 1
-        registers[SP] = uint8(val >> 8)
-        registers[SP + 1] = uint8(val & 0xFF)
+        registers[SP] = uint8(truncatingIfNeeded:val >> 8)
+        registers[SP + 1] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
         
     case 0x0B:
         //DEC BC
         let val = Bc(registers) - 1
-        registers[B] = uint8(val >> 8)
-        registers[C] = uint8(val & 0xFF)
+        registers[B] = uint8(truncatingIfNeeded:val >> 8)
+        registers[C] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x1B:
         //DEC DE
         let val = De(registers) - 1
-        registers[D] = uint8(val >> 8)
-        registers[E] = uint8(val & 0xFF)
+        registers[D] = uint8(truncatingIfNeeded:val >> 8)
+        registers[E] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x2B :
         //DEC HL
         let val = Hl(registers) - 1
-        registers[H] = uint8(val >> 8)
-        registers[L] = uint8(val & 0xFF)
+        registers[H] = uint8(truncatingIfNeeded:val >> 8)
+        registers[L] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x3B :
         //DEC SP
         let val = Sp(registers) - 1
-        registers[SP] = uint8(val >> 8)
-        registers[SP + 1] = uint8(val & 0xFF)
+        registers[SP] = uint8(truncatingIfNeeded:val >> 8)
+        registers[SP + 1] = uint8(truncatingIfNeeded:val & 0xFF)
         stallCpu(4, &registers)
     case 0x07:
         //RLCA
         var a = registers[A]
-        let c = uint8((a & 0x80) >> 7)
+        let c = uint8(truncatingIfNeeded:(a & 0x80) >> 7)
         a <<= 1
         registers[A] = a
-        registers[F] &= uint8(~(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
+        registers[F] &= uint8(truncatingIfNeeded:~(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
         registers[F] |= c
         stallCpu(4, &registers)
     case 0x0F:
         //RRCA
         var a = registers[A]
-        let c = uint8(a & 0x01)
+        let c = uint8(truncatingIfNeeded:a & 0x01)
         a >>= 1
         registers[A] = a
-        registers[F] &= uint8(~(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
+        registers[F] &= uint8(truncatingIfNeeded:~(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
         registers[F] |= c
         stallCpu(4, &registers)
     case 0x1F :
         //RRA
         var a = registers[A]
-        let c = uint8(a & 0x01)
+        let c = uint8(truncatingIfNeeded:a & 0x01)
         a >>= 1
         var f = registers[F]
-        a |= uint8((f & uint8(Fl.C.rawValue)) << 7)
+        a |= uint8(truncatingIfNeeded:(f & uint8(truncatingIfNeeded:Fl.C.rawValue)) << 7)
         registers[A] = a
-        f &= uint8(~(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
+        f &= uint8(truncatingIfNeeded:~(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
         f |= c
         registers[F] = f
         stallCpu(4, &registers)
     case 0xC3:
         //JP
         let addr = fetch16(&registers, &mem)
-        registers[PC] = uint8(addr >> 8)
-        registers[PC + 1] = uint8(addr)
+        registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+        registers[PC + 1] = uint8(truncatingIfNeeded:addr)
         stallCpu(10, &registers)
     case 0xC2, 0xCA, 0xD2, 0xDA, 0xE2, 0xEA, 0xF2, 0xFA:
         //JP with condition
         let addr = fetch16(&registers, &mem)
         if(jumpCond(rByte, &registers)){
-            registers[PC] = uint8(addr >> 8)
-            registers[PC + 1] = uint8(addr)
+            registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+            registers[PC + 1] = uint8(truncatingIfNeeded:addr)
         }
         stallCpu(10, &registers)
     case 0x18 :
-        let d = Int8(fetch(&registers, &mem))
+        let d = Int8(truncatingIfNeeded:fetch(&registers, &mem))
         let addr = Int(Pc(registers)) + Int(d)
-        registers[PC] = uint8(addr >> 8)
-        registers[PC + 1] = uint8(addr)
+        registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+        registers[PC + 1] = uint8(truncatingIfNeeded:addr)
         stallCpu(12, &registers)
     case 0x20, 0x28, 0x30, 0x38 :
         //JR with condition
-        let d = Int8(fetch(&registers, &mem))
+        let d = Int8(truncatingIfNeeded:fetch(&registers, &mem))
         let addr = Int(Pc(registers)) + Int(d)
-        if(jumpCond(uint8(r & 3), &registers)){
-            registers[PC] = uint8(addr >> 8)
-            registers[PC + 1] = uint8(addr)
+        if(jumpCond(uint8(truncatingIfNeeded:r & 3), &registers)){
+            registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+            registers[PC + 1] = uint8(truncatingIfNeeded:addr)
             stallCpu(12, &registers)
         }
         else {
@@ -412,19 +416,19 @@ func regularOpcodes(_ opCode : uint8,
     case 0xE9:
         //JP HL
         let addr = Hl(registers)
-        registers[PC] = uint8(addr >> 8)
-        registers[PC + 1] = uint8(addr)
+        registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+        registers[PC + 1] = uint8(truncatingIfNeeded:addr)
         stallCpu(4, &registers)
     case 0x10:
         //DJNZ
-        let d = Int8(fetch(&registers, &mem))
+        let d = Int8(truncatingIfNeeded:fetch(&registers, &mem))
         let addr = Int(Pc(registers)) + Int(d)
         var b = registers[B]
         b -= 1
         registers[B] = b
         if(b != 0){
-            registers[PC] = uint8(addr >> 8)
-            registers[PC + 1] = uint8(addr)
+            registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+            registers[PC + 1] = uint8(truncatingIfNeeded:addr)
             stallCpu(12, &registers)
         }
         else {
@@ -435,13 +439,13 @@ func regularOpcodes(_ opCode : uint8,
         let addr = fetch16(&registers, &mem)
         var stack = Sp(registers)
         stack -= 1
-        mem[Int(stack)] = uint8(Pc(registers) >> 8)
+        mem[Int(stack)] = uint8(truncatingIfNeeded:Pc(registers) >> 8)
         stack -= 1
-        mem[Int(stack)] = uint8(Pc(registers))
-        registers[SP] = uint8(stack >> 8)
-        registers[SP + 1] = uint8(stack)
-        registers[PC] = uint8(addr >> 8)
-        registers[PC + 1] = uint8(addr)
+        mem[Int(stack)] = uint8(truncatingIfNeeded:Pc(registers))
+        registers[SP] = uint8(truncatingIfNeeded:stack >> 8)
+        registers[SP + 1] = uint8(truncatingIfNeeded:stack)
+        registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+        registers[PC + 1] = uint8(truncatingIfNeeded:addr)
         stallCpu(17, &registers)
     case 0xC4, 0xCC, 0xD4, 0xDC, 0xE4, 0xEC, 0xF4, 0xFC:
         //Call with condition
@@ -449,13 +453,13 @@ func regularOpcodes(_ opCode : uint8,
         if(jumpCond(rByte, &registers)){
             var stack = Sp(registers)
             stack -= 1
-            mem[Int(stack)] = uint8(Pc(registers) >> 8)
+            mem[Int(stack)] = uint8(truncatingIfNeeded:Pc(registers) >> 8)
             stack -= 1
-            mem[Int(stack)] = uint8(Pc(registers))
-            registers[SP] = uint8(stack >> 8)
-            registers[SP + 1] = uint8(stack)
-            registers[PC] = uint8(addr >> 8)
-            registers[PC + 1] = uint8(addr)
+            mem[Int(stack)] = uint8(truncatingIfNeeded:Pc(registers))
+            registers[SP] = uint8(truncatingIfNeeded:stack >> 8)
+            registers[SP + 1] = uint8(truncatingIfNeeded:stack)
+            registers[PC] = uint8(truncatingIfNeeded:addr >> 8)
+            registers[PC + 1] = uint8(truncatingIfNeeded:addr)
             stallCpu(17, &registers)
         }else {
             stallCpu(10, &registers)
@@ -466,8 +470,8 @@ func regularOpcodes(_ opCode : uint8,
         registers[PC + 1] = mem[Int(stack)]
         stack += 1
         registers[PC] = mem[Int(stack)]
-        registers[SP] = uint8(stack >> 8)
-        registers[SP + 1] = uint8(stack)
+        registers[SP] = uint8(truncatingIfNeeded:stack >> 8)
+        registers[SP + 1] = uint8(truncatingIfNeeded:stack)
         stallCpu(10, &registers)
     case 0xC0, 0xC8, 0xD0, 0xD8, 0xE0, 0xE8, 0xF0, 0xF8 :
         //Return with condition
@@ -476,8 +480,8 @@ func regularOpcodes(_ opCode : uint8,
             registers[PC + 1] = mem[Int(stack)]
             stack += 1
             registers[PC] = mem[Int(stack)]
-            registers[SP] = uint8(stack >> 8)
-            registers[SP + 1] = uint8(stack)
+            registers[SP] = uint8(truncatingIfNeeded:stack >> 8)
+            registers[SP + 1] = uint8(truncatingIfNeeded:stack)
             stallCpu(11, &registers)
         }
         else {
@@ -487,13 +491,13 @@ func regularOpcodes(_ opCode : uint8,
         //RST
         var stack = Sp(registers)
         stack -= 1
-        mem[Int(stack)] = uint8(Pc(registers) >> 8)
+        mem[Int(stack)] = uint8(truncatingIfNeeded:Pc(registers) >> 8)
         stack -= 1
-        mem[Int(stack)] = uint8(Pc(registers))
-        registers[SP] = uint8(stack >> 8)
-        registers[SP + 1] = uint8(stack)
+        mem[Int(stack)] = uint8(truncatingIfNeeded:Pc(registers))
+        registers[SP] = uint8(truncatingIfNeeded:stack >> 8)
+        registers[SP + 1] = uint8(truncatingIfNeeded:stack)
         registers[PC] = 0
-        registers[PC + 1] = uint8(opCode & 0x38)
+        registers[PC + 1] = uint8(truncatingIfNeeded:opCode & 0x38)
         stallCpu(17, &registers)
     case 0xDB :
         //In A
@@ -508,6 +512,7 @@ func regularOpcodes(_ opCode : uint8,
         stallCpu(11, &registers)
     default :
         print("ERROR : Regular Parse Failed")
+        print("Code = " + String(opCode))
         halt = true
         
     }

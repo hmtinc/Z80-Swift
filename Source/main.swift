@@ -29,30 +29,25 @@ func RomRead(path : String) -> [UInt8]?{
     return romByteArray
 }
 
-var x : [uint8]! = RomRead(path: "myfile.dat")
+var x : [uint8]! = RomRead(path: "sonic")
 
-var mem = Array(repeating: UInt8(0), count : 65536)
+var mem = Array(repeating: UInt8(0), count : 1000000)
 var count = 0;
 
-for index in 0...(x!.count - 1) {
-    mem[index] = x![index]
+let z = x.count
+
+for i in 0..<x.count{
+    mem[i] = x[i]
 }
+
 
 var z80 = CPU(rom : mem);
 z80.debug = true;
 z80.printRegisters()
 
 while(!z80.halt){
-    
-    if(count > 30){
-        break;
-    }
-    
     z80.parse()
     count += 1
 }
 
-
-
-z80.parse()
 

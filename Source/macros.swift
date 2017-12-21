@@ -86,7 +86,7 @@ func Parity(_ val : uint16, _ registers : inout [uint8]) -> Bool{
 }
 
 func dec(_ b : uint8, _ registers : inout [uint8]) -> UInt8 {
-    let sum = b - 1
+    let sum = b &- 1
     var f = uint8(registers[F] & 0x28)
     if((sum & 0x80) > 0) {f = UInt8(f | 0x80)}
     if(sum == 0) {f = UInt8(f | 0x40)}
@@ -99,7 +99,7 @@ func dec(_ b : uint8, _ registers : inout [uint8]) -> UInt8 {
 }
 
 func Inc(_ b : uint8, _ registers : inout [uint8]) -> UInt8 {
-    let sum = b + 1
+    let sum = b &+ 1
     var f = uint8(registers[F] & 0x28)
     if((sum & 0x80) > 0) {f = UInt8(f | 0x80)}
     if(sum == 0) {f = UInt8(f | 0x40)}
@@ -114,7 +114,7 @@ func Inc(_ b : uint8, _ registers : inout [uint8]) -> UInt8 {
 func Cmp(_ b : uint8, _ registers : inout [uint8]){
     
     let a = registers[A]
-    let diff = a - b
+    let diff = a &- b
     var f = UInt8(registers[F] & 0x28)
     if ((diff & 0x80) > 0) { f = UInt8(f | 0x80)}
     if (diff == 0) { f = UInt8(f | 0x40) }
@@ -162,7 +162,7 @@ func and(_ b : uint8, _ registers : inout [uint8]) {
 func sbc (_ b : uint8, _ registers : inout [uint8]){
     let a = registers[A]
     let c = uint8(registers[F] & 0x01)
-    let diff = a - b - c
+    let diff = a &- b &- c
     var f = uint8(registers[F] & 0x28)
     if((diff & 0x80) > 0) {f |= uint8(Fl.S.rawValue)}
     if(diff == 0) {f |= UInt8(Fl.Z.rawValue)}
@@ -177,7 +177,7 @@ func sbc (_ b : uint8, _ registers : inout [uint8]){
 
 func sub (_ b : uint8, _ registers : inout [uint8]){
     let a = registers[A]
-    let diff = a - b
+    let diff = a &- b
     var f = uint8(registers[F] & 0x28)
     if((diff & 0x80) > 0) {f |= uint8(Fl.S.rawValue)}
     if(diff == 0) {f |= UInt8(Fl.Z.rawValue)}
@@ -193,7 +193,7 @@ func sub (_ b : uint8, _ registers : inout [uint8]){
 func adc (_ b : uint8, _ registers : inout [uint8]){
     let a = registers[A]
     let c = uint8(registers[F] & Fl.C.rawValue)
-    let diff = a + b + c
+    let diff = a &+ b &+ c
     var f = uint8(registers[F] & 0x28)
     if((diff & 0x80) > 0) {f |= uint8(Fl.S.rawValue)}
     if(diff == 0) {f |= UInt8(Fl.Z.rawValue)}
@@ -208,7 +208,7 @@ func adc (_ b : uint8, _ registers : inout [uint8]){
 
 func add (_ b : uint8, _ registers : inout [uint8]){
     let a = registers[A]
-    let diff = a + b
+    let diff = a &+ b
     registers[A] = uint8(diff)
     var f = uint8(registers[F] & 0x28)
     if((diff & 0x80) > 0) {f |= uint8(Fl.S.rawValue)}
@@ -222,7 +222,7 @@ func add (_ b : uint8, _ registers : inout [uint8]){
 }
 
 func add(_ val1 : uint16, _ val2 : uint16, _ registers : inout [uint8]) -> uint16 {
-    let sum = val1 + val2
+    let sum = val1 &+ val2
     var f = uint8(registers[F] & uint8(Fl.H.rawValue | Fl.N.rawValue | Fl.C.rawValue))
     if ((val1 & 0x0FFF) + (val2 & 0x0FFF) > 0x0FFF){
         f |= uint8(Fl.H.rawValue)

@@ -17,7 +17,7 @@ class Ports {
     
     func readPort(_ address : uint16) -> uint8{
         print("Reading port at " + String(address))
-        return portData[address]!
+        return portData[address] ?? uint8(0)
     }
     
     func writePort(_ address : uint16, _ value : uint8){
