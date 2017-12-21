@@ -10,6 +10,7 @@ The goal for Z80 Swift is to fully implement a cross platform (OSX, Linux, iOS) 
 systems based on the Z80
 
 # Resources
+- [C# Z80 Emulator By Sklivvz](https://github.com/sklivvz/z80)
 - [GO Z80 Emulator By Remogatto](https://github.com/remogatto/z80)
 - [Miracle SMS Emulator](https://github.com/mattgodbolt/Miracle/tree/master/z80)
 - [Z80 OpCodes List](http://www.z80.info/z80oplist.txt)
